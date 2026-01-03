@@ -31,8 +31,9 @@ pub fn request_book_with_isbn(isbn: &str) -> Result<(String, String), Box<dyn st
     let response = client.get(request_url).send()?;
 
     let book: Book = response.json()?;
-
+    println!("found book");
     let author_tag = &book.authors.get(0).unwrap().key;
     let author_name = request_author(author_tag)?;
+    println!("found author");
     Ok((book.title, author_name))
 }

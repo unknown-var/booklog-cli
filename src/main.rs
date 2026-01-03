@@ -36,6 +36,8 @@ fn add_new_book() {
     if let Ok((_title, _author)) = isbn::api::request_book_with_isbn(&isbn) {
         author = _author;
         title = _title;
+        println!("title: {}", title);
+        println!("author: {}", author);
     } else {
         println!("Failed to call isbn api");
         title = ask("Please input the books title: ");
