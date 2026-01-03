@@ -6,6 +6,7 @@ mod config;
 mod isbn;
 mod types;
 use types::Book;
+mod review_writer;
 
 mod file_loading;
 fn ask(question: &str) -> String {
@@ -48,13 +49,28 @@ fn add_new_book() {
         }
         println!("Wrong format for rating");
     };
+    let has_review = loop {
+        let answer = ask("do you want to write a review [y/n]: ").to_ascii_lowercase();
+        if answer.starts_with("y") {
+            match review_writer::create_review(&isbn) {
+                Ok(()) => (),
+                Err(e) => {
+                    println!("failed to write review because: {}", e);
+                    return;
+                }
+            }
+            break true;
+        } else if answer.starts_with("n") {
+            break false;
+        }
+    };
     let book = Book {
         isbn: isbn,
         title: title,
         author: author,
         rating: rating,
         reading_date: Local::now().date_naive(),
-        has_review: false,
+        has_review: has_review,
     };
     println!("this book is added to the file book: \n{}", book);
     let _ = file_loading::save_book(book);
@@ -73,6 +89,43 @@ fn list_all_books() {
     }
 }
 
+fn delete_entry() {
+    println!("\n#### ALL TITLES ####\n");
+
+    let books = match file_loading::retrieve_books() {
+        Ok(v) => v,
+        Err(e) => {
+            println!("failed to read book file because: {}", e);
+            return;
+        }
+    };
+    let mut i = 0;
+    for book in books {
+        i += 1;
+        println!("{}. {}", i, book.title);
+    }
+
+    let book_to_delete = loop {
+        let answer = ask("\nput in the index of the title you want to delete: ");
+        if answer.to_ascii_lowercase().starts_with("q") {
+            return;
+        }
+        if let Ok(index) = answer.parse::<usize>() {
+            if index == 0 {
+                println!("index 0 dose not exist");
+                continue;
+            } else if index <= i {
+                break index - 1;
+            } else {
+                println!("index to high");
+                continue;
+            }
+        }
+        println!("Wrong format for index");
+    };
+    let _ = file_loading::delete_book(book_to_delete);
+}
+
 fn run_option(option: &str) {
     let first_letter = match option.chars().next() {
         Some(v) => v,
@@ -84,6 +137,7 @@ fn run_option(option: &str) {
     match first_letter {
         'n' => add_new_book(),
         'l' => list_all_books(),
+        'd' => delete_entry(),
         _ => println!("{} is not a valid option", first_letter),
     }
 }
@@ -94,6 +148,7 @@ fn menu() {
 type option then enter:
 [n] new book entry
 [l] list old book entrys
+[d] delete entry
 [q] quit
 "#;
     loop {

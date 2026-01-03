@@ -17,6 +17,7 @@ fn default_general() -> General {
         data_path: default_data_path(),
         data_dir_name: default_dir_name(),
         book_file: default_book_file(),
+        text_editor: default_text_editor(),
     }
 }
 #[derive(Debug, Deserialize)]
@@ -27,6 +28,8 @@ pub struct General {
     pub data_dir_name: String,
     #[serde(default = "default_book_file")]
     pub book_file: String,
+    #[serde(default = "default_text_editor")]
+    pub text_editor: String,
 }
 
 // Default functions
@@ -38,6 +41,10 @@ fn default_dir_name() -> String {
 }
 fn default_book_file() -> String {
     "books.csv".to_string()
+}
+
+fn default_text_editor() -> String {
+    "vim".to_string()
 }
 
 fn load_settings(path: &str) -> Result<Config, Box<dyn std::error::Error>> {
