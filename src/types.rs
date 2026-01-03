@@ -16,12 +16,13 @@ impl fmt::Display for Book {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "ISBN: {}\nTITLE: {}\nAUTHOR: {}\nRATING: {}/10\nREADING DATE: {}",
+            "ISBN: {}\nTITLE: {}\nAUTHOR: {}\nRATING: {}/10\nREADING DATE: {}\nHAS REVIEW: {}",
             self.isbn,
             self.title,
             self.author,
             self.rating,
             self.reading_date.format("%Y-%m-%d"),
+            if self.has_review { "yes" } else { "no" },
         )
     }
 }
