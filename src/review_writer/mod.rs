@@ -33,3 +33,11 @@ pub fn create_review(isbn: &str) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
+
+pub fn delete_review(isbn: &str) -> Result<(), Box<dyn Error>> {
+    let review_path = file_loading::get_review_path(isbn)?;
+    if review_path.exists() {
+        fs::remove_file(review_path)?;
+    }
+    Ok(())
+}

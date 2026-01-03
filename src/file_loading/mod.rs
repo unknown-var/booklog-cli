@@ -1,5 +1,5 @@
-use crate::config;
 use crate::types::Book;
+use crate::{config, review_writer};
 use std::error::Error;
 use std::fs::{self, OpenOptions};
 use std::path::{Path, PathBuf};
@@ -86,28 +86,53 @@ pub fn retrieve_books() -> Result<Vec<Book>, Box<dyn Error>> {
 }
 
 pub fn delete_book(index: usize) -> Result<(), Box<dyn Error>> {
-    // 1. Retrieve the current list of books
+    // Retrieve the current list of books
     let mut books = retrieve_books()?;
 
-    // 2. Check if the index is valid to avoid a program crash (panic)
+    // Check if the index is valid to avoid a program crash (panic)
     if index >= books.len() {
         return Err("Index out of bounds: No book found at that position.".into());
     }
 
-    // 3. Optional: Delete the review file associated with this book
+    // Delete the review file associated with this book
     let book_to_remove = &books[index];
-    let review_path = get_review_path(&book_to_remove.isbn)?;
-    if review_path.exists() {
-        fs::remove_file(review_path)?;
-    }
+    review_writer::delete_review(&book_to_remove.isbn)?;
 
-    // 4. Remove the book from the vector
+    // Remove the book from the vector
     books.remove(index);
 
-    // 5. Overwrite the file with the new list
+    // Overwrite the file with the new list
     let path = get_book_path()?;
 
     // Using File::create truncates (clears) the file automatically
+    let file = fs::File::create(path)?;
+    let mut wtr = csv::WriterBuilder::new()
+        .has_headers(true)
+        .from_writer(file);
+
+    for book in books {
+        wtr.serialize(book)?;
+    }
+    wtr.flush()?;
+
+    Ok(())
+}
+
+pub fn edit_book(index: usize, new_book: Book) -> Result<(), Box<dyn Error>> {
+    // Retrieve the current list of books
+    let mut books = retrieve_books()?;
+
+    // Check if the index is valid to avoid a program crash (panic)
+    if index >= books.len() {
+        return Err("Index out of bounds: No book found at that position.".into());
+    }
+
+    // Change the book
+    books[index] = new_book;
+
+    // Overwrite the file with the new list
+    let path = get_book_path()?;
+
     let file = fs::File::create(path)?;
     let mut wtr = csv::WriterBuilder::new()
         .has_headers(true)
