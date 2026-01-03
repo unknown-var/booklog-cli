@@ -1,6 +1,6 @@
 use serde::Deserialize;
+use std::fs;
 use std::sync::OnceLock;
-use std::{env, fs};
 use toml;
 
 static CONFIG: OnceLock<General> = OnceLock::new();

@@ -4,9 +4,10 @@ use std::error::Error;
 use std::fs;
 use std::process::Command;
 use which::which;
+
 fn check_editor(editor: &str) -> bool {
-    match which("vim") {
-        Ok(path) => return true,
+    match which(editor) {
+        Ok(_) => return true,
         Err(_) => return false,
     }
 }
@@ -18,6 +19,10 @@ pub fn create_review(isbn: &str) -> Result<(), Box<dyn Error>> {
     println!("path: {:?}", &path);
 
     let command: String = config::get_config().text_editor.clone();
+
+    if !check_editor(&command) {
+        return Err(format!("the editor {} does not exist on the system", command).into());
+    }
 
     let status = Command::new(command).arg(path).status()?;
 
